@@ -1,0 +1,6 @@
+.project
+.cproject
+system/
+ldscripts/
+include/
+.settings/
