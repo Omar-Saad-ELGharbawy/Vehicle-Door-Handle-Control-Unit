@@ -149,7 +149,7 @@ int main()
 				use_case = DOOR_UNLOCK;
 			}
 			break;
-			/* Vehicle Door Unlocked but still Closed */
+		/* **************Vehicle Door Unlocked but still Closed *************/
 		case DOOR_UNLOCK:
 			/* Vehicle Lock LED is ON*/
 			Gpio_WritePin(GPIO_B, VEHICLE_LOCK_LED, HIGH);
@@ -190,6 +190,7 @@ int main()
 					// Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
 					// Gpio_WritePin(GPIO_B, AMBIENT_LIGHT_LED, LOW);
 					use_case = ANTI_THEFT_LOCK;
+					GPT_EndTimer();
 					door_unlock_timer = ENDED;
 					// g_overflow_flag = TRUE;
 				}
@@ -200,23 +201,30 @@ int main()
 				// Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
 				// Gpio_WritePin(GPIO_B, AMBIENT_LIGHT_LED, LOW);
 				use_case = ANTI_THEFT_LOCK;
+				GPT_EndTimer();
 				door_unlock_timer = ENDED;
 			}
 
 			/* check buttons*/
 			if (door_lock == DOOR_OPENED)
 			{
+				GPT_EndTimer();
+				door_unlock_timer = ENDED;
 				use_case = DOOR_IS_OPEN;
 			}
 			if (handle_lock == DOOR_LOCKED)
 			{
+				GPT_EndTimer();
+				door_unlock_timer = ENDED;
 				use_case = LOCKING_THE_DOOR;
 			}
 			break;
-			/*Vehicle Door Unlocked and Door is Open */
+		/* **************** Vehicle Door Unlocked and Door is Open *******************/
 		case DOOR_IS_OPEN:
 			/* Ambient LED is ON*/
 			Gpio_WritePin(GPIO_B, AMBIENT_LIGHT_LED, HIGH);
+			Gpio_WritePin(GPIO_B, VEHICLE_LOCK_LED, HIGH);
+			Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
 
 			if (door_lock == DOOR_CLOSED)
 			{
@@ -239,7 +247,7 @@ int main()
 			}
 
 			/* Timer Conditions */
-			/* If no overflow occured blink leds */
+			/* If no overflow occurred blink LEDS */
 			if (g_overflow_flag == NO_OVERFLOW)
 			{
 				if( GPT_GetElapsedTime() < 500 )
@@ -261,7 +269,9 @@ int main()
 				else if (GPT_CheckTimeIsElapsed() == OVERFLOW)
 				{
 					/* if overflow occurs (2 seconds ended) close the leds and go to DEFAULT_STATE */
-					Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+//					Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+					GPT_EndTimer();
+					anti_theft_timer = ENDED;
 					handle_lock = DOOR_LOCKED;
 					use_case = DEFAULT_STATE;
 					// g_overflow_flag = TRUE;
@@ -270,12 +280,14 @@ int main()
 			/* if overflow occurs (2 seconds ended) close the leds and go to DEFAULT_STATE */
 			else if (g_overflow_flag == OVERFLOW)
 			{
-				Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+//				Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+				GPT_EndTimer();
+				anti_theft_timer = ENDED;
 				handle_lock = DOOR_LOCKED;
 				use_case = DEFAULT_STATE;
 			}
 			break;
-			/*Vehicle Door Unlocked and Door is Closed */
+		/* ***************** Vehicle Door Unlocked and Door is Closed *****************/
 		case CLOSING_THE_DOOR:
 			/* VEHICLE LED IS OFF */
 			Gpio_WritePin(GPIO_B, VEHICLE_LOCK_LED, LOW);
@@ -285,13 +297,13 @@ int main()
 			/* Ambient Led is ON for 1 second then OFF */
 
 			/* check if timer started in door unlock state but the 10 seconds didnot finish*/
-			if ( ( (GPT_CheckTimeIsElapsed() == TIMER_NOT_STARTED) && (closing_door_timer != STARTED) ) || (door_unlock_timer == STARTED) )
+			if ( ( (GPT_CheckTimeIsElapsed() == TIMER_NOT_STARTED) && (closing_door_timer != STARTED) ) )
 			{
 				//change to 10 seconds timer to check for anti theft
 				/* Start timer for 2 second */
-				GPT_StartTimer(3000);
+				GPT_StartTimer(10000);
 				closing_door_timer = STARTED;
-				door_unlock_timer = ENDED;
+//				door_unlock_timer = ENDED;
 			}
 			/* Timer Conditions */
 			if (g_overflow_flag == NO_OVERFLOW)
@@ -307,32 +319,38 @@ int main()
 				else if (GPT_CheckTimeIsElapsed() == OVERFLOW)
 				{
 					/* if overflow occurs (1 seconds ended) close the AMBIENT_LIGHT_LED  */
-					Gpio_WritePin(GPIO_B, AMBIENT_LIGHT_LED, LOW);
-					//				use_case = ANTI_THEFT_LOCK;
-					//					closing_door_timer = ENDED;
+//					Gpio_WritePin(GPIO_B, AMBIENT_LIGHT_LED, LOW);
+					GPT_EndTimer();
+					closing_door_timer = ENDED;
+					use_case = ANTI_THEFT_LOCK;
 				}
 			}
 			//
 			else if (g_overflow_flag == OVERFLOW)
 			{
 				/* if overflow occurs (1 seconds ended) close the AMBIENT_LIGHT_LED  */
-				Gpio_WritePin(GPIO_B, AMBIENT_LIGHT_LED, LOW);
-				//				use_case = ANTI_THEFT_LOCK;
-				//				closing_door_timer = ENDED;
+//				Gpio_WritePin(GPIO_B, AMBIENT_LIGHT_LED, LOW);
+				GPT_EndTimer();
+				closing_door_timer = ENDED;
+				use_case = ANTI_THEFT_LOCK;
 			}
 
 			/* check buttons*/
 			if (door_lock == DOOR_OPENED)
 			{
+				GPT_EndTimer();
+				closing_door_timer = ENDED;
 				use_case = DOOR_IS_OPEN;
 			}
 			if (handle_lock == DOOR_LOCKED)
 			{
+				GPT_EndTimer();
+				closing_door_timer = ENDED;
 				use_case = LOCKING_THE_DOOR;
 			}
 
 			break;
-			/*Vehicle Door Locked and Door is Closed */
+		/* ********************Vehicle Door Locked and Door is Closed******************* */
 		case LOCKING_THE_DOOR:
 			/* VEHICLE LED IS OFF */
 			Gpio_WritePin(GPIO_B, VEHICLE_LOCK_LED, LOW);
@@ -345,7 +363,7 @@ int main()
 			//			Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, HIGH);
 
 			/* check if timer started in door unlock state but the 10 seconds did not finish*/
-			if ( ( (GPT_CheckTimeIsElapsed() == TIMER_NOT_STARTED) && (locking_door_timer != STARTED) ) || (door_unlock_timer == STARTED) )
+			if ( ( (GPT_CheckTimeIsElapsed() == TIMER_NOT_STARTED) && (locking_door_timer != STARTED) ) )
 			{
 				/* Start timer for 2 seconds */
 				GPT_StartTimer(2000);
@@ -376,7 +394,8 @@ int main()
 				else if (GPT_CheckTimeIsElapsed() == OVERFLOW)
 				{
 					/* if overflow occurs (2 seconds ended) close the leds and go to DEFAULT_STATE */
-					 Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+//					 Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+					GPT_EndTimer();
 					locking_door_timer = ENDED;
 					handle_lock = DOOR_LOCKED;
 					use_case = DEFAULT_STATE;
@@ -385,7 +404,8 @@ int main()
 			/* if overflow occurs (2 seconds ended) close the leds and go to DEFAULT_STATE */
 			else if (g_overflow_flag == OVERFLOW)
 			{
-				Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+//				Gpio_WritePin(GPIO_B, HAZARD_LIGHT_LED, LOW);
+				GPT_EndTimer();
 				locking_door_timer = ENDED;
 				handle_lock = DOOR_LOCKED;
 				use_case = DEFAULT_STATE;

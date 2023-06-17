@@ -74,7 +74,6 @@ void GPT_Init(void){
  *  A function to request the GPT to start and send its number of
  *  tickets before timer overflow and stop.
  */
-
 void GPT_StartTimer(unsigned long int OverFlowTicks){
 	/*set overflow number to Auto Reload Register*/
 	g_OverFlowTicks = OverFlowTicks;
@@ -86,6 +85,21 @@ void GPT_StartTimer(unsigned long int OverFlowTicks){
 }
 
 /*
+ * Function : GPT_EndTimer
+ * Input : void
+ * Output : void
+ * Description :
+ *  A function to End the GPT timer and clear the counter register to be able to start new timer
+ */
+void GPT_EndTimer(void){
+	/*stop the timer */
+	CLEAR_BIT(TIM2->CR1,0);
+	/* Clear counter register */
+	TIM2->CNT = 0;
+	g_overflow_flag = OVERFLOW;
+}
+
+/*
  * Function : GPT_CheckTimeIsElapsed
  * Input : void
  * Output : unsigned char
@@ -94,7 +108,6 @@ void GPT_StartTimer(unsigned long int OverFlowTicks){
  * and (0) if no overflow occurred or GPT_StartTimer is not called from the last read.
  */
 unsigned char GPT_CheckTimeIsElapsed(void){
-
 	/* check if overflow ocuured by Reading the UIF bit */
 	//	unsigned char Overflow_flag = READ_BIT(TIM2->SR,0);
 	if(TIM2->CNT == (g_OverFlowTicks - 1))
@@ -123,20 +136,6 @@ unsigned char GPT_CheckTimeIsElapsed(void){
  *  A function to return number of elapsed ticks from the last call of the GPT_StartTimer,
  *  0 if it is not called and 0xffffffff if an overflow occurred.
  */
-// unsigned long int GPT_GetElapsedTime(void){
-
-// 	/* check if timer not started*/
-
-// 	if(READ_BIT(TIM2->CR1,0) == TIMER_NOT_STARTED){
-// 		return TIMER_NOT_STARTED;
-// 	}
-// 	else if(GPT_CheckTimeIsElapsed() == NO_OVERFLOW ){
-// 		unsigned long int elapsed_ticks = TIM2->CNT;
-// 		return elapsed_ticks;
-// 	}else{
-// 		return OVERFLOW;
-// 	}
-// }
 unsigned long int GPT_GetElapsedTime(void){
 
 	switch (GPT_CheckTimeIsElapsed())
@@ -155,18 +154,6 @@ unsigned long int GPT_GetElapsedTime(void){
 		return 0;
 		break;
 	}
-
-	/* check if timer not started*/
-
-	// if(READ_BIT(TIM2->CR1,0) == TIMER_NOT_STARTED){
-	// 	return TIMER_NOT_STARTED;
-	// }
-	// else if(GPT_CheckTimeIsElapsed() == NO_OVERFLOW ){
-	// 	unsigned long int elapsed_ticks = TIM2->CNT;
-	// 	return elapsed_ticks;
-	// }else{
-	// 	return OVERFLOW;
-	// }
 }
 
 /*
@@ -179,7 +166,6 @@ unsigned long int GPT_GetElapsedTime(void){
  */
 unsigned long int GPT_GetRemainingTime(void){
 	/* check if timer not started*/
-
 	if(READ_BIT(TIM2->CR1,0) == TIMER_NOT_STARTED){
 		return 0xffffffff;
 	}
@@ -190,5 +176,28 @@ unsigned long int GPT_GetRemainingTime(void){
 		//		overflow
 		return 0;
 	}
+}
 
+/*
+ * Function : GPT_StopTimer
+ * Input : void
+ * Output : void
+ * Description :
+ *  A function to Stop the GPT timer without clearing the counter register to be able to cintinue counting be ContinueTimer
+ */
+void GPT_StopTimer(void){
+	/*stop the timer */
+	CLEAR_BIT(TIM2->CR1,0);
+}
+
+/*
+ * Function : GPT_ContinueTimer
+ * Input : void
+ * Output : void
+ * Description :
+ *  A function to Continue the GPT timer after stopping it.
+ */
+void GPT_ContinueTimer(void){
+	/*Enable counter by setting Counter Enable bit Control Register 1 */
+	SET_BIT(TIM2->CR1,0);
 }

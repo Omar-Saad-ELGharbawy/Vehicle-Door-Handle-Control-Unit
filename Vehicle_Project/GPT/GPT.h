@@ -94,8 +94,16 @@ void GPT_Init(void);
  *  A function to request the GPT to start and send its number of
  *  tickets before timer overflow and stop.
  */
-
 void GPT_StartTimer(unsigned long int OverFlowTicks);
+
+/*
+ * Function : GPT_EndTimer
+ * Input : void
+ * Output : void
+ * Description :
+ *  A function to End the GPT timer and clear the counter register to be able to start new timer
+ */
+void GPT_EndTimer(void);
 
 /*
  * Function : GPT_CheckTimeIsElapsed
@@ -127,6 +135,25 @@ unsigned long int GPT_GetElapsedTime(void);
  */
 unsigned long int GPT_GetRemainingTime(void);
 
+
+
+/*
+ * Function : GPT_StopTimer
+ * Input : void
+ * Output : void
+ * Description :
+ *  A function to Stop the GPT timer without clearing the counter register to be able to cintinue counting be ContinueTimer
+ */
+void GPT_StopTimer(void);
+
+/*
+ * Function : GPT_ContinueTimer
+ * Input : void
+ * Output : void
+ * Description :
+ *  A function to Continue the GPT timer after stopping it.
+ */
+void GPT_ContinueTimer(void);
 
 
 #endif /* GPT_H_ */
