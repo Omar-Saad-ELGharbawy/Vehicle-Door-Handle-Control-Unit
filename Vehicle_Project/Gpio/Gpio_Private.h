@@ -21,17 +21,18 @@
 #define GPIOE_BASE_ADDR 0x40021000
 #define GPIOH_BASE_ADDR 0x40021C00
 
-/******************* GPIO  General OFFSET ********************/
-#define GPIOx_MODER    (0x00)
-#define GPIOx_OTYPER   (0x04)
-#define GPIOx_OSPEEDR  (0x08)
-#define GPIOx_PUPDR    (0x0C)
-#define GPIOx_IDR      (0x10)
-#define GPIOx_ODR      (0x14)
-#define GPIOx_BSRR     (0x18)
-#define GPIOx_LCKR     (0x1C)
-#define GPIOx_AFRL     (0x20)
-#define GPIOx_AFRH    (0x24)
-
+/******************* GPIO OFFSET Structure ********************/
+typedef struct {
+	uint32 GPIO_MODER;    //mode register
+	uint32 GPIO_OTYPER;   //output type register
+	uint32 GPIO_OSPEEDR;  //output speed register
+	uint32 GPIO_PUPDR;    //pull-up/pull-down register
+	uint32 GPIO_IDR;	  //input data register
+	uint32 GPIO_ODR;	  //output data register
+	uint32 GPIO_BSRR;	  //bit set/reset register
+	uint32 GPIO_LCKR;	  //configuration lock register
+	uint32 GPIO_AFRL;	  //alternate function low register
+	uint32 GPIO_AFRH;	  //alternate function high register
+} GpioType;
 
 #endif /* GPIO_PRIVATE_H */

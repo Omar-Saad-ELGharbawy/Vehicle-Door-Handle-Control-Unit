@@ -19,8 +19,6 @@
  *                      Macros & Glopal Variables                                  *
  *******************************************************************************/
 
-
-
 #define GPIO_REG(REG_ID, PORT_ID)  ((uint32 *)((REG_ID) + (PORT_ID)))
 
 uint32 gpioAddresses[6] = {GPIOA_BASE_ADDR,GPIOB_BASE_ADDR,GPIOC_BASE_ADDR,GPIOD_BASE_ADDR,GPIOE_BASE_ADDR,GPIOH_BASE_ADDR};
@@ -28,8 +26,6 @@ uint32 gpioAddresses[6] = {GPIOA_BASE_ADDR,GPIOB_BASE_ADDR,GPIOC_BASE_ADDR,GPIOD
 /*******************************************************************************
  *                      Functions Definitions                                  *
  *******************************************************************************/
-
-
 void Gpio_ConfigPin(uint8 PortName, uint8 PinNum, uint8 PinMode, uint8 DefaultState, uint8 InputMode) {
 
 	/*
@@ -44,38 +40,31 @@ void Gpio_ConfigPin(uint8 PortName, uint8 PinNum, uint8 PinMode, uint8 DefaultSt
 	else
 	{
 		uint8 portId = PortName - GPIO_A;
-
-		uint32 * gpioModerReg =       GPIO_REG(GPIOx_MODER , gpioAddresses[portId]);
-		uint32 * gpioOutputTypeReg =  GPIO_REG(GPIOx_OTYPER, gpioAddresses[portId]);
-		uint32 * gpioPullUpDownReg =  GPIO_REG(GPIOx_PUPDR , gpioAddresses[portId]);
+		GpioType * gpioRegs = gpioAddresses[portId];
+//		GpioType * gpioRegs = (uint32 *) gpioAddresses[portId];
 
 		/* Insert PinMode in PinNum Block in Moder Register*/
-		INSERT_BLOCK( *gpioModerReg , PinNum, PinMode);
+		INSERT_2BITS_BLOCK( gpioRegs->GPIO_MODER , PinNum, PinMode);
 		/* Insert DefaultState in PinNum Bit in OTYPER Register*/
-		INSERT_BIT( *gpioOutputTypeReg  , PinNum, DefaultState);
-
+		INSERT_BIT(  gpioRegs->GPIO_OTYPER  , PinNum, DefaultState);
 		if (GPIO_INPUT == PinMode )
 		{
 			/* Insert InputMode in PinNum Block in PUPDR Register*/
-			INSERT_BLOCK( * gpioPullUpDownReg , PinNum, InputMode);
+			INSERT_2BITS_BLOCK( gpioRegs->GPIO_PUPDR , PinNum, InputMode);
 		}
-
 	}
 }
 
 uint8 Gpio_WritePin(uint8 PortName, uint8 PinNum, uint8 Data) {
 
-
 	uint8 portId = PortName - GPIO_A;
-
-	uint32 * gpioModerReg =       GPIO_REG(GPIOx_MODER , gpioAddresses[portId]);
-	uint32 * gpioOutputDataReg =  GPIO_REG(GPIOx_ODR , gpioAddresses[portId]);
+	GpioType * gpioRegs = gpioAddresses[portId];
 
 	/*check if the pin is output*/
-	if ( GPIO_OUTPUT == (READ_BLOCK( *gpioModerReg,PinNum)) )
+	if ( GPIO_OUTPUT == (READ_2BITS_BLOCK( gpioRegs->GPIO_MODER ,PinNum)) )
 	{
 		/* Insert Data in PinNum Bit in ODR Register*/
-		INSERT_BIT(*gpioOutputDataReg, PinNum, Data);
+		INSERT_BIT( gpioRegs->GPIO_ODR , PinNum, Data);
 		return OK;
 	}
 	else
@@ -87,20 +76,18 @@ uint8 Gpio_WritePin(uint8 PortName, uint8 PinNum, uint8 Data) {
 uint8 Gpio_ReadPin(uint8 PortName, uint8 PinNum){
 
 	uint8 portId = PortName - GPIO_A;
-
-	uint32 * gpioModerReg =      GPIO_REG(GPIOx_MODER , gpioAddresses[portId]);
-	uint32 * gpioInputDataReg =  GPIO_REG(GPIOx_IDR , gpioAddresses[portId]);
+	GpioType * gpioRegs = gpioAddresses[portId];
 
 	/*check if the pin is input*/
-	if ( GPIO_INPUT == (READ_BLOCK(*gpioModerReg,PinNum)) )
+	if ( GPIO_INPUT == (READ_2BITS_BLOCK(gpioRegs->GPIO_MODER ,PinNum)) )
 	{
 		/* Read Data in PinNum Bit in IDR Register*/
-		return READ_BIT( *gpioInputDataReg, PinNum);
+		return READ_BIT( gpioRegs->GPIO_IDR , PinNum);
 		// return OK;
 	}
-	else
-	{
-//		 return NOK;
-	}
+//	else
+//	{
+////		 return NOK;
+//	}
 
 }

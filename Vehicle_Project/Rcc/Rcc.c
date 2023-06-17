@@ -7,7 +7,7 @@
 
 #include "Rcc.h"
 
-#include "Bit_Operations.h"
+#include "Macros.h"
 #include "Rcc_Private.h"
 #include "Std_Types.h"
 
