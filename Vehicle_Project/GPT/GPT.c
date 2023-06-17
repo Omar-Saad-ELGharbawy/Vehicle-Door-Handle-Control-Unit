@@ -61,6 +61,7 @@ void GPT_Init(void){
 	TIM2->PSC = PSC_VALUE;
 	// enable update interrupt
 	SET_BIT(TIM2->DIER,0);
+//	TIM2->CNT = 0;
 	g_overflow_flag = INITIAL_STATE;
 
 }
@@ -79,9 +80,9 @@ void GPT_StartTimer(unsigned long int OverFlowTicks){
 	g_OverFlowTicks = OverFlowTicks;
 	TIM2->ARR = OverFlowTicks;
 	/*Enable counter by setting Counter Enable bit Control Register 1 */
-	SET_BIT(TIM2->CR1,0);
-//	g_overflow_flag = FALSE;
+	TIM2->CNT = 0;
 	g_overflow_flag = NO_OVERFLOW;
+	SET_BIT(TIM2->CR1,0);
 }
 
 /*
@@ -96,7 +97,7 @@ unsigned char GPT_CheckTimeIsElapsed(void){
 
 	/* check if overflow ocuured by Reading the UIF bit */
 	//	unsigned char Overflow_flag = READ_BIT(TIM2->SR,0);
-	if(TIM2->CNT == (2000 - 1))
+	if(TIM2->CNT == (g_OverFlowTicks - 1))
 	{
 		//		if(READ_BIT(TIM2->SR,0) == OVERFLOW)
 		/* Clear Update interrupt flag (UIF) if overflow occurs */
