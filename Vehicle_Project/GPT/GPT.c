@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 #include "GPT.h"
-#include "Utils.h"
+#include "GPT_Private.h"
 #include "Macros.h"
 
 
@@ -38,7 +38,8 @@ void GPT_Init(void){
 
 	/* Control Register 1 (CR1) Describtion:
         Set Counter Enable(CEN) bit at GPT Start Timer
-        Update Disable (UDIS),URS kept at reset state (0) 
+        Update Disable (UDIS) kept at reset state (0)
+        URS Bit is set : Generate update flag from overflow only
 		OPM Bit is set : Counter stops counting at the next update event (clearing the bit CEN)
         DIR bit is 0 : (Up Conuter)
         CMS is 00 : Edge alligned mode
@@ -46,24 +47,13 @@ void GPT_Init(void){
         CKD is 00 : Clock division is 1
 	 */
 
-	/* UDIS bit is 0 to enable update event*/
-	CLEAR_BIT(TIM2->CR1,1);
 	/* set Update request source (URS) to generate update flag from overflow only*/
 	SET_BIT(TIM2->CR1,2);
-	/*Set One Pulse Mode Bit to stop counting at the next update event */
-	//	 SET_BIT(TIM2->CR1,3);
-	/* Set Auto reload preload enable(ARR is buffered) */
-	//    SET_BIT(TIM2->CR1,7);
-
 	/*set pre_scaler value to 1599 (16000/15999+1) */
-	//	TIM2->PSC = 1599;
-	//	TIM2->PSC = 0x3E7F;
 	TIM2->PSC = PSC_VALUE;
-	// enable update interrupt
+	/* enable update interrupt */
 	SET_BIT(TIM2->DIER,0);
-//	TIM2->CNT = 0;
 	g_overflow_flag = INITIAL_STATE;
-
 }
 
 /*
@@ -108,16 +98,11 @@ void GPT_EndTimer(void){
  * and (0) if no overflow occurred or GPT_StartTimer is not called from the last read.
  */
 unsigned char GPT_CheckTimeIsElapsed(void){
-	/* check if overflow ocuured by Reading the UIF bit */
-	//	unsigned char Overflow_flag = READ_BIT(TIM2->SR,0);
+	/* check if overflow occurred by Reading the UIF bit */
 	if(TIM2->CNT == (g_OverFlowTicks - 1))
 	{
-		//		if(READ_BIT(TIM2->SR,0) == OVERFLOW)
-		/* Clear Update interrupt flag (UIF) if overflow occurs */
-		// CLEAR_BIT(TIM2->SR,0);
 		/*stop the timer */
 		CLEAR_BIT(TIM2->CR1,0);
-//		g_overflow_flag = TRUE;
 		g_overflow_flag = OVERFLOW;
 		TIM2->CNT = 0;
 		return OVERFLOW;
@@ -173,7 +158,7 @@ unsigned long int GPT_GetRemainingTime(void){
 		unsigned long int remainig_ticks = g_OverFlowTicks - TIM2->CNT;
 		return remainig_ticks;
 	}else{
-		//		overflow
+		/* Overflow */
 		return 0;
 	}
 }
