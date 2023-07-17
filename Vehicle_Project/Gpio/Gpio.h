@@ -16,6 +16,12 @@
 #include "Std_Types.h"
 
 /*******************************************************************************
+ *                         Static Configuration  For Init Function             *
+ *******************************************************************************/
+#define PORTA
+#define PORTB
+
+/*******************************************************************************
  *                                Definitions                                  *
  *******************************************************************************/
 
@@ -53,12 +59,22 @@
 #define HIGH 0x01
 
 /*Return Status*/
-#define OK 1
-#define NOK 0
+#define OK  50
+#define NOK 60
 
 /*******************************************************************************
  *                              Functions Prototypes                           *
  *******************************************************************************/
+
+/*
+    * Function : Gpio_Init
+    * Input : void
+    * Output : void
+    * Description :
+    * Initialize GPIO Driver
+    * Enable Clock for used GPIO PORTs using Static Configurationin RCC Register .
+    */
+void GPIO_Init(void);
 
 /*
  * Function : Gpio_ConfigPin
@@ -74,7 +90,7 @@
 void Gpio_ConfigPin(uint8 PortName, uint8 PinNum, uint8 PinMode, uint8 DefaultState, uint8 InputMode);
 
 /*
- * Function : Gpio_WritePin
+ * Function : Gpio_WritePinValue
  * Input : PortName, PinNum, Data
  * Output : uint8 0 or 1
  * Description :
@@ -82,18 +98,18 @@ void Gpio_ConfigPin(uint8 PortName, uint8 PinNum, uint8 PinMode, uint8 DefaultSt
  * 1- Write output data in ODR Register  .
  * If initialized configuration of the requested pin  didn’t match the write request needs, it returns NOK and didn’t perform the action.
  */
-uint8 Gpio_WritePin(uint8 PortName, uint8 PinNum, uint8 Data);
+uint8 Gpio_WritePinValue(uint8 PortName, uint8 PinNum, uint8 Data);
 
 
 /*
- * Function : Gpio_ReadPin
+ * Function : Gpio_ReadPinState
  * Input : PortName, PinNum, Data
  * Output : uint8 0 or 1
  * Description :
  * Read Pin
  * 1- Read input data from IDR Registe and return it  .
  */
-uint8 Gpio_ReadPin(uint8 PortName, uint8 PinNum);
+uint8 Gpio_ReadPinState(uint8 PortName, uint8 PinNum);
 
 
 #endif /* GPIO_H_ */

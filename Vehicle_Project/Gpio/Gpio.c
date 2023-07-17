@@ -14,6 +14,8 @@
 #include "Gpio_Private.h"
 #include "Utils.h"
 #include "Macros.h"
+#include "Rcc.h"
+
 
 /*******************************************************************************
  *                      Macros & Glopal Variables                                  *
@@ -26,6 +28,51 @@ uint32 gpioAddresses[6] = {GPIOA_BASE_ADDR,GPIOB_BASE_ADDR,GPIOC_BASE_ADDR,GPIOD
 /*******************************************************************************
  *                      Functions Definitions                                  *
  *******************************************************************************/
+
+/*
+    * Function : Gpio_Init
+    * Input : void
+    * Output : void
+    * Description :
+    * Initialize GPIO Driver
+    * Enable Clock for used GPIO PORTs using Static Configurationin RCC Register .
+    */
+void Gpio_Init(void) {
+	
+	#ifdef PORTA
+	/* Enable Clock for GPIO PORT A*/
+	Rcc_Enable(RCC_GPIOA);
+	#endif
+
+	#ifdef PORTB
+	/* Enable Clock for GPIO PORT B*/
+	Rcc_Enable(RCC_GPIOB);
+	#endif
+
+	#ifdef PORTC
+	/* Enable Clock for GPIO PORT C*/
+	Rcc_Enable(RCC_GPIOC);
+	#endif
+
+	#ifdef PORTD
+	/* Enable Clock for GPIO PORT D*/
+	Rcc_Enable(RCC_GPIOD);
+	#endif
+
+	#ifdef PORTE
+	/* Enable Clock for GPIO PORT E*/
+	Rcc_Enable(RCC_GPIOE);
+	#endif
+
+	#ifdef PORTH
+	/* Enable Clock for GPIO PORT H*/
+	Rcc_Enable(RCC_GPIOH);
+	#endif
+
+}
+
+
+
 void Gpio_ConfigPin(uint8 PortName, uint8 PinNum, uint8 PinMode, uint8 DefaultState, uint8 InputMode) {
 
 	/*
@@ -40,8 +87,7 @@ void Gpio_ConfigPin(uint8 PortName, uint8 PinNum, uint8 PinMode, uint8 DefaultSt
 	else
 	{
 		uint8 portId = PortName - GPIO_A;
-		GpioType * gpioRegs = gpioAddresses[portId];
-//		GpioType * gpioRegs = (uint32 *) gpioAddresses[portId];
+		GpioType * gpioRegs = (GpioType *) gpioAddresses[portId];
 
 		/* Insert PinMode in PinNum Block in Moder Register*/
 		INSERT_2BITS_BLOCK( gpioRegs->GPIO_MODER , PinNum, PinMode);
@@ -55,10 +101,10 @@ void Gpio_ConfigPin(uint8 PortName, uint8 PinNum, uint8 PinMode, uint8 DefaultSt
 	}
 }
 
-uint8 Gpio_WritePin(uint8 PortName, uint8 PinNum, uint8 Data) {
+uint8 Gpio_WritePinValue(uint8 PortName, uint8 PinNum, uint8 Data) {
 
 	uint8 portId = PortName - GPIO_A;
-	GpioType * gpioRegs = gpioAddresses[portId];
+	GpioType * gpioRegs = (GpioType *) gpioAddresses[portId];
 
 	/*check if the pin is output*/
 	if ( GPIO_OUTPUT == (READ_2BITS_BLOCK( gpioRegs->GPIO_MODER ,PinNum)) )
@@ -73,10 +119,10 @@ uint8 Gpio_WritePin(uint8 PortName, uint8 PinNum, uint8 Data) {
 	}
 }
 
-uint8 Gpio_ReadPin(uint8 PortName, uint8 PinNum){
+uint8 Gpio_ReadPinState(uint8 PortName, uint8 PinNum){
 
 	uint8 portId = PortName - GPIO_A;
-	GpioType * gpioRegs = gpioAddresses[portId];
+	GpioType * gpioRegs = (GpioType *) gpioAddresses[portId];
 
 	/*check if the pin is input*/
 	if ( GPIO_INPUT == (READ_2BITS_BLOCK(gpioRegs->GPIO_MODER ,PinNum)) )
@@ -85,9 +131,9 @@ uint8 Gpio_ReadPin(uint8 PortName, uint8 PinNum){
 		return READ_BIT( gpioRegs->GPIO_IDR , PinNum);
 		// return OK;
 	}
-//	else
-//	{
-////		 return NOK;
-//	}
+	else
+	{
+		 return NOK;
+	}
 
 }

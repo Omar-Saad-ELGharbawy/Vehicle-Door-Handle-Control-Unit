@@ -11,19 +11,19 @@
 
 #include "GPT.h"
 #include "GPT_Private.h"
+#include "Rcc.h"
 #include "Macros.h"
 
 
 /*******************************************************************************
  *                      Global Variables   	                                   *
  *******************************************************************************/
-unsigned long int g_OverFlowTicks;
+uint8 g_overflow_flag;
 
 
 /*******************************************************************************
  *                      Functions Definitions                                  *
  *******************************************************************************/
-uint8 g_overflow_flag;
 /*
  * Function : GPT_Init
  * Input : void
@@ -34,7 +34,10 @@ uint8 g_overflow_flag;
  */
 void GPT_Init(void){
 
-	/*initialize Timer 2 register as upcounter with to count 1 msec at one clock*/
+	/*initialize Timer 2 register as Up-Counter to count 1 msec at one clock*/
+
+	/* Enable Clock for TIMER 2*/
+	Rcc_Enable(RCC_TIM2);
 
 	/* Control Register 1 (CR1) Describtion:
         Set Counter Enable(CEN) bit at GPT Start Timer
@@ -49,7 +52,7 @@ void GPT_Init(void){
 
 	/* set Update request source (URS) to generate update flag from overflow only*/
 	SET_BIT(TIM2->CR1,2);
-	/*set pre_scaler value to 1599 (16000/15999+1) */
+	/*set pre_scaler value to 1599 (16,000,000/15,999+1) */
 	TIM2->PSC = PSC_VALUE;
 	/* enable update interrupt */
 	SET_BIT(TIM2->DIER,0);
@@ -66,12 +69,10 @@ void GPT_Init(void){
  */
 void GPT_StartTimer(unsigned long int OverFlowTicks){
 	/*set overflow number to Auto Reload Register*/
-	g_OverFlowTicks = OverFlowTicks;
 	TIM2->ARR = OverFlowTicks;
 	/*Enable counter by setting Counter Enable bit Control Register 1 */
-	TIM2->CNT = 0;
-	g_overflow_flag = NO_OVERFLOW;
 	SET_BIT(TIM2->CR1,0);
+	g_overflow_flag = NO_OVERFLOW;
 }
 
 /*
@@ -99,12 +100,10 @@ void GPT_EndTimer(void){
  */
 unsigned char GPT_CheckTimeIsElapsed(void){
 	/* check if overflow occurred by Reading the UIF bit */
-	if(TIM2->CNT == (g_OverFlowTicks - 1))
+	if(TIM2->CNT == (TIM2->ARR - 1))
 	{
-		/*stop the timer */
-		CLEAR_BIT(TIM2->CR1,0);
-		g_overflow_flag = OVERFLOW;
-		TIM2->CNT = 0;
+		/*End the timer */
+		GPT_EndTimer();
 		return OVERFLOW;
 	}else if(READ_BIT(TIM2->CR1,0) == 0){
 		return TIMER_NOT_STARTED;
@@ -151,17 +150,19 @@ unsigned long int GPT_GetElapsedTime(void){
  */
 unsigned long int GPT_GetRemainingTime(void){
 	/* check if timer not started*/
-	if(READ_BIT(TIM2->CR1,0) == TIMER_NOT_STARTED){
+	if(READ_BIT(TIM2->CR1,0) == 0){
 		return 0xffffffff;
 	}
 	else if(GPT_CheckTimeIsElapsed() == NO_OVERFLOW ){
-		unsigned long int remainig_ticks = g_OverFlowTicks - TIM2->CNT;
+		unsigned long int remainig_ticks = TIM2->ARR - TIM2->CNT;
 		return remainig_ticks;
 	}else{
 		/* Overflow */
 		return 0;
 	}
 }
+
+
 
 /*
  * Function : GPT_StopTimer

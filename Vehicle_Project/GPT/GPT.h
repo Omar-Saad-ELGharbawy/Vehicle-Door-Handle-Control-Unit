@@ -23,7 +23,7 @@
  * 5. Get remaining time in ms using GPT_GetRemainingTime() function.
  * 6. End the current timer by calling GPT_EndTimer() function.
  * 7. Stop the current timer by calling GPT_StopTimer() function.
- * 8. Continuew the current timer by calling GPT_ContinueTimer() function. 
+ * 8. Continue the current timer by calling GPT_ContinueTimer() function.
  *  */
 
 
@@ -36,7 +36,8 @@
 
 #define TIMER_NOT_STARTED 20
 
-#define PSC_VALUE 15999
+//#define PSC_VALUE 15999
+#define PSC_VALUE 999
 
 /*******************************************************************************
  *                              Functions Prototypes                           *
